@@ -23,16 +23,24 @@ echo "=== 5. Deploying Nginx + exporter ==="
 kubectl apply -f nginx-with-exporter.yaml
 
 echo "=== 6. Installing Prometheus ==="
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true
+for i in 1 2 3; do
+  helm repo update && break
+  echo "Retry helm repo update ($i/3)..."
+  sleep 5
+done
 helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
 
 echo "=== 7. Configuring Nginx metrics ==="
 kubectl apply -f servicemonitor.yaml
 
 echo "=== 8. Installing Fluent Bit ==="
-helm repo add fluent https://fluent.github.io/helm-charts
-helm repo update
+helm repo add fluent https://fluent.github.io/helm-charts || true
+for i in 1 2 3; do
+  helm repo update && break
+  echo "Retry helm repo update ($i/3)..."
+  sleep 5
+done
 helm install fluent-bit fluent/fluent-bit -n logging --create-namespace -f fluent-bit-values.yaml
 
 echo ""
