@@ -1,16 +1,18 @@
 # MTS DevOps Case
 
-## Описание
+## РћРїРёСЃР°РЅРёРµ
 
-Демонстрационное веб-приложение (Nginx), развёрнутое в Kubernetes и доступное через Gateway API.
+Р”РµРјРѕРЅСЃС‚СЂР°С†РёРѕРЅРЅРѕРµ РІРµР±-РїСЂРёР»РѕР¶РµРЅРёРµ (Nginx), СЂР°Р·РІС‘СЂРЅСѓС‚РѕРµ РІ Kubernetes Рё РґРѕСЃС‚СѓРїРЅРѕРµ С‡РµСЂРµР· Gateway API.
 
-## Архитектура
+## РђСЂС…РёС‚РµРєС‚СѓСЂР°
 
+```
+РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ в†’ Gateway API (Envoy Gateway) в†’ Service в†’ Nginx Pod
+```
 
+## РСЃРїРѕР»СЊР·РѕРІР°РЅРЅС‹Рµ С‚РµС…РЅРѕР»РѕРіРёРё
 
-## Использованные технологии
-
-| Компонент | Версия |
+| РљРѕРјРїРѕРЅРµРЅС‚ | Р’РµСЂСЃРёСЏ |
 |---|---|
 | Kubernetes | v1.31 (kind) |
 | kind | v0.24.0 |
@@ -18,51 +20,57 @@
 | Nginx | latest |
 | helm | v4.1.4 |
 | kubectl | v1.37.1 |
-| ОС | Windows 10 + WSL 2 (Ubuntu) |
+| РћРЎ | Windows 10 + WSL 2 (Ubuntu) |
 
-## Требования к среде
+## РўСЂРµР±РѕРІР°РЅРёСЏ Рє СЃСЂРµРґРµ
 
-- Windows 10 с включённой виртуализацией
+- Windows 10 СЃ РІРєР»СЋС‡С‘РЅРЅРѕР№ РІРёСЂС‚СѓР°Р»РёР·Р°С†РёРµР№
 - WSL 2 + Ubuntu
 - Docker Desktop
 - kind, kubectl, helm
 
-## Развёртывание
+## Р Р°Р·РІС‘СЂС‚С‹РІР°РЅРёРµ
 
-Одна команда:
+РћРґРЅР° РєРѕРјР°РЅРґР°:
 
 ```powershell
 .\deploy.ps1
+```
 
+РР»Рё РІСЂСѓС‡РЅСѓСЋ РїРѕ С€Р°РіР°Рј:
 
-Или вручную по шагам:
+1. РЎРѕР·РґР°С‚СЊ РєР»Р°СЃС‚РµСЂ: `kind create cluster --name mts-case`
+2. РЈСЃС‚Р°РЅРѕРІРёС‚СЊ Envoy Gateway: `helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.0.2 -n envoy-gateway-system --create-namespace`
+3. РџСЂРёРјРµРЅРёС‚СЊ GatewayClass: `kubectl apply -f gatewayclass.yaml`
+4. РџСЂРёРјРµРЅРёС‚СЊ РїСЂРёР»РѕР¶РµРЅРёРµ Рё Gateway: `kubectl apply -f app.yaml`
 
-Создать кластер: kind create cluster --name mts-case
-Установить Envoy Gateway: helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.0.2 -n envoy-gateway-system --create-namespace
-Применить GatewayClass: kubectl apply -f gatewayclass.yaml
-Применить приложение и Gateway: kubectl apply -f app.yaml
+## РџСЂРѕРІРµСЂРєР° СЂР°Р±РѕС‚РѕСЃРїРѕСЃРѕР±РЅРѕСЃС‚Рё
 
-Проверка Gateway API
-powershell:
+### РџСЂРѕРІРµСЂРєР° Gateway API
+
+```powershell
 kubectl get gatewayclass
 kubectl get gateway
 kubectl get httproute
+```
 
+### РџСЂРѕРІРµСЂРєР° РґРѕСЃС‚СѓРїР° Рє РїСЂРёР»РѕР¶РµРЅРёСЋ
 
-Проверка доступа к приложению
-В первом окне PowerShell:
+Р’ РїРµСЂРІРѕРј РѕРєРЅРµ PowerShell:
 
-powershell
+```powershell
 kubectl port-forward -n envoy-gateway-system svc/envoy-default-my-gateway-1c7c06f0 8080:80
-Во втором окне:
+```
 
-powershell
+Р’Рѕ РІС‚РѕСЂРѕРј РѕРєРЅРµ:
+
+```powershell
 curl.exe http://localhost:8080
-Ожидаемый результат — HTML-страница «Welcome to nginx!».
+```
 
+РћР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ вЂ” HTML-СЃС‚СЂР°РЅРёС†Р° В«Welcome to nginx!В».
 
+## РР·РІРµСЃС‚РЅС‹Рµ РѕРіСЂР°РЅРёС‡РµРЅРёСЏ
 
-Известные ограничения
-В кластере kind нет встроенного балансировщика нагрузки, поэтому Gateway имеет статус PROGRAMMED: False — это ожидаемое поведение. Доступ к приложению осуществляется через kubectl port-forward.
-
-Мониторинг (Prometheus) и логирование (Fluentd/Filebeat) в текущей версии не реализованы.
+- Р’ РєР»Р°СЃС‚РµСЂРµ kind РЅРµС‚ РІСЃС‚СЂРѕРµРЅРЅРѕРіРѕ Р±Р°Р»Р°РЅСЃРёСЂРѕРІС‰РёРєР° РЅР°РіСЂСѓР·РєРё, РїРѕСЌС‚РѕРјСѓ Gateway РёРјРµРµС‚ СЃС‚Р°С‚СѓСЃ `PROGRAMMED: False` вЂ” СЌС‚Рѕ РѕР¶РёРґР°РµРјРѕРµ РїРѕРІРµРґРµРЅРёРµ. Р”РѕСЃС‚СѓРї Рє РїСЂРёР»РѕР¶РµРЅРёСЋ РѕСЃСѓС‰РµСЃС‚РІР»СЏРµС‚СЃСЏ С‡РµСЂРµР· `kubectl port-forward`.
+- РњРѕРЅРёС‚РѕСЂРёРЅРі (Prometheus) Рё Р»РѕРіРёСЂРѕРІР°РЅРёРµ (Fluentd/Filebeat) РІ С‚РµРєСѓС‰РµР№ РІРµСЂСЃРёРё РЅРµ СЂРµР°Р»РёР·РѕРІР°РЅС‹.
