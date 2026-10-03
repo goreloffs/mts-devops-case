@@ -1,122 +1,68 @@
 # MTS DevOps Case
 
-## РћРїРёСЃР°РЅРёРµ
+## Описание
 
-РџРѕР»РЅС‹Р№ СЃС‚РµРє РґР»СЏ РґРµРјРѕРЅСЃС‚СЂР°С†РёРѕРЅРЅРѕРіРѕ РІРµР±-РїСЂРёР»РѕР¶РµРЅРёСЏ Nginx РІ Kubernetes: СЂР°Р·РІС‘СЂС‚С‹РІР°РЅРёРµ, РґРѕСЃС‚СѓРї С‡РµСЂРµР· Gateway API, РјРѕРЅРёС‚РѕСЂРёРЅРі (Prometheus) Рё СЃР±РѕСЂ Р»РѕРіРѕРІ (Fluent Bit).
+Демонстрационное веб-приложение (Nginx), развёрнутое в Kubernetes и доступное через Gateway API.
 
-## РђСЂС…РёС‚РµРєС‚СѓСЂР°
+## Архитектура
 
-```
-РџРѕР»СЊР·РѕРІР°С‚РµР»СЊ
-    в†“
-Gateway API (Envoy Gateway)
-    в†“
-Service (nginx-svc)
-    в†“
-Pod Nginx  в†ђв†’  nginx-prometheus-exporter  в†ђ  Prometheus
-    в†“
-Р›РѕРіРё (stdout)  в†’  Fluent Bit  в†’  stdout (json_lines)
-```
 
-## РСЃРїРѕР»СЊР·РѕРІР°РЅРЅС‹Рµ С‚РµС…РЅРѕР»РѕРіРёРё
 
-| РљРѕРјРїРѕРЅРµРЅС‚ | Р’РµСЂСЃРёСЏ |
+## Использованные технологии
+
+| Компонент | Версия |
 |---|---|
 | Kubernetes | v1.31 (kind) |
 | kind | v0.24.0 |
 | Envoy Gateway | v1.0.2 (Gateway API) |
 | Nginx | latest |
-| nginx-prometheus-exporter | v1.1.0 |
-| kube-prometheus-stack | latest (Helm) |
-| Fluent Bit | v5.1.3 |
 | helm | v4.1.4 |
 | kubectl | v1.37.1 |
-| РћРЎ | Windows 10 + WSL 2 (Ubuntu) |
+| ОС | Windows 10 + WSL 2 (Ubuntu) |
 
-## РўСЂРµР±РѕРІР°РЅРёСЏ Рє СЃСЂРµРґРµ
+## Требования к среде
 
-- Windows 10 СЃ РІРєР»СЋС‡С‘РЅРЅРѕР№ РІРёСЂС‚СѓР°Р»РёР·Р°С†РёРµР№
+- Windows 10 с включённой виртуализацией
 - WSL 2 + Ubuntu
-- Docker Desktop (Р·Р°РїСѓС‰РµРЅ, Р·РЅР°С‡РѕРє РєРёС‚Р° Р·РµР»С‘РЅС‹Р№)
-- kind, kubectl, helm (СѓСЃС‚Р°РЅРѕРІР»РµРЅС‹ С‡РµСЂРµР· Chocolatey)
+- Docker Desktop
+- kind, kubectl, helm
 
-## Р Р°Р·РІС‘СЂС‚С‹РІР°РЅРёРµ
+## Развёртывание
 
-РћРґРЅР° РєРѕРјР°РЅРґР°:
+Одна команда:
 
 ```powershell
 .\deploy.ps1
-```
 
-РР»Рё РІСЂСѓС‡РЅСѓСЋ РїРѕ С€Р°РіР°Рј:
 
-1. РЎРѕР·РґР°С‚СЊ РєР»Р°СЃС‚РµСЂ: `kind create cluster --name mts-case`
-2. РЈСЃС‚Р°РЅРѕРІРёС‚СЊ Envoy Gateway: `helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.0.2 -n envoy-gateway-system --create-namespace`
-3. РџСЂРёРјРµРЅРёС‚СЊ GatewayClass: `kubectl apply -f gatewayclass.yaml`
-4. РџСЂРёРјРµРЅРёС‚СЊ Nginx + exporter: `kubectl apply -f nginx-with-exporter.yaml`
-5. РЈСЃС‚Р°РЅРѕРІРёС‚СЊ Prometheus: `helm install prometheus prometheus-community/kube-prometheus-stack -n monitoring --create-namespace`
-6. РџСЂРёРјРµРЅРёС‚СЊ ServiceMonitor: `kubectl apply -f servicemonitor.yaml`
-7. РЈСЃС‚Р°РЅРѕРІРёС‚СЊ Fluent Bit: `helm install fluent-bit fluent/fluent-bit -n logging --create-namespace -f fluent-bit-values.yaml`
+Или вручную по шагам:
 
-## РџСЂРѕРІРµСЂРєР° СЂР°Р±РѕС‚РѕСЃРїРѕСЃРѕР±РЅРѕСЃС‚Рё
+Создать кластер: kind create cluster --name mts-case
+Установить Envoy Gateway: helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.0.2 -n envoy-gateway-system --create-namespace
+Применить GatewayClass: kubectl apply -f gatewayclass.yaml
+Применить приложение и Gateway: kubectl apply -f app.yaml
 
-### РџСЂРѕРІРµСЂРєР° Gateway API
-
-```powershell
+Проверка Gateway API
+powershell:
 kubectl get gatewayclass
 kubectl get gateway
 kubectl get httproute
-kubectl get pods
-```
 
-### РџСЂРѕРІРµСЂРєР° РґРѕСЃС‚СѓРїР° Рє РїСЂРёР»РѕР¶РµРЅРёСЋ
 
-РџРµСЂРІРѕРµ РѕРєРЅРѕ PowerShell:
+Проверка доступа к приложению
+В первом окне PowerShell:
 
-```powershell
+powershell
 kubectl port-forward -n envoy-gateway-system svc/envoy-default-my-gateway-1c7c06f0 8080:80
-```
+Во втором окне:
 
-Р’С‚РѕСЂРѕРµ РѕРєРЅРѕ PowerShell:
-
-```powershell
+powershell
 curl.exe http://localhost:8080
-```
+Ожидаемый результат — HTML-страница «Welcome to nginx!».
 
-РћР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ вЂ” HTML-СЃС‚СЂР°РЅРёС†Р° В«Welcome to nginx!В».
 
-### РџСЂРѕРІРµСЂРєР° РјРѕРЅРёС‚РѕСЂРёРЅРіР°
 
-```powershell
-kubectl port-forward -n monitoring svc/prometheus-kube-prometheus-prometheus 9090:9090
-```
+Известные ограничения
+В кластере kind нет встроенного балансировщика нагрузки, поэтому Gateway имеет статус PROGRAMMED: False — это ожидаемое поведение. Доступ к приложению осуществляется через kubectl port-forward.
 
-РћС‚РєСЂРѕР№С‚Рµ РІ Р±СЂР°СѓР·РµСЂРµ `http://localhost:9090` Рё РІС‹РїРѕР»РЅРёС‚Рµ Р·Р°РїСЂРѕСЃ:
-
-```
-nginx_connections_active
-```
-
-РћР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ вЂ” С‡РёСЃР»РѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ (РЅР°РїСЂРёРјРµСЂ, `1`).
-
-Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅРѕ РјРѕР¶РЅРѕ РїСЂРѕРІРµСЂРёС‚СЊ `nginx_http_requests_total` вЂ” СЃС‡С‘С‚С‡РёРє HTTP-Р·Р°РїСЂРѕСЃРѕРІ.
-
-### РџСЂРѕРІРµСЂРєР° Р»РѕРіРёСЂРѕРІР°РЅРёСЏ
-
-РџРѕСЃР»Рµ РЅРµСЃРєРѕР»СЊРєРёС… Р·Р°РїСЂРѕСЃРѕРІ `curl.exe http://localhost:8080` РІС‹РїРѕР»РЅРёС‚Рµ:
-
-```powershell
-kubectl logs -n logging -l app.kubernetes.io/name=fluent-bit --tail=30
-```
-
-РћР¶РёРґР°РµРјС‹Р№ СЂРµР·СѓР»СЊС‚Р°С‚ вЂ” JSON-СЃС‚СЂРѕРєРё, СЃРѕРґРµСЂР¶Р°С‰РёРµ access-Р»РѕРіРё Nginx, РЅР°РїСЂРёРјРµСЂ:
-
-```json
-{"log":"10.244.0.8 - - [03/Oct/2026:16:28:22 +0000] \"GET / HTTP/1.1\" 200 896 \"-\" \"curl/8.9.1\""}
-```
-
-## РР·РІРµСЃС‚РЅС‹Рµ РѕРіСЂР°РЅРёС‡РµРЅРёСЏ
-
-- Р’ РєР»Р°СЃС‚РµСЂРµ kind РЅРµС‚ РІСЃС‚СЂРѕРµРЅРЅРѕРіРѕ Р±Р°Р»Р°РЅСЃРёСЂРѕРІС‰РёРєР° РЅР°РіСЂСѓР·РєРё, РїРѕСЌС‚РѕРјСѓ Gateway РёРјРµРµС‚ СЃС‚Р°С‚СѓСЃ `PROGRAMMED: False` вЂ” СЌС‚Рѕ РѕР¶РёРґР°РµРјРѕРµ РїРѕРІРµРґРµРЅРёРµ. Р”РѕСЃС‚СѓРї Рє РїСЂРёР»РѕР¶РµРЅРёСЋ РѕСЃСѓС‰РµСЃС‚РІР»СЏРµС‚СЃСЏ С‡РµСЂРµР· `kubectl port-forward`.
-- Fluent Bit РІС‹РІРѕРґРёС‚ Р»РѕРіРё РІ stdout (РґР»СЏ Р»РѕРєР°Р»СЊРЅРѕР№ РїСЂРѕРІРµСЂРєРё). Р’ РїСЂРѕРґР°РєС€РµРЅРµ РёС… СЃР»РµРґРѕРІР°Р»Рѕ Р±С‹ РѕС‚РїСЂР°РІР»СЏС‚СЊ РІ Elasticsearch/Loki.
-- Р РµС€РµРЅРёРµ РїСЂРѕС‚РµСЃС‚РёСЂРѕРІР°РЅРѕ РЅР° Windows 10 + WSL 2. РќР° Ubuntu 24.04 РґРѕР»Р¶РЅРѕ СЂР°Р±РѕС‚Р°С‚СЊ Р±РµР· РёР·РјРµРЅРµРЅРёР№, С‚Р°Рє РєР°Рє РІСЃРµ РєРѕРјРїРѕРЅРµРЅС‚С‹ РєСЂРѕСЃСЃ-РїР»Р°С‚С„РѕСЂРјРµРЅРЅС‹Рµ.
+Мониторинг (Prometheus) и логирование (Fluentd/Filebeat) в текущей версии не реализованы.
